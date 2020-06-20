@@ -11,25 +11,31 @@ import (
 	"github.com/ardenj/graceful-http/handlers"
 )
 
+var Port = "5678"
+
 func main() {
 	l := log.New(os.Stdout, "api", log.LstdFlags)
 
 	h := handlers.NewHowdy(l)
 	b := handlers.NewBoop(l)
+	p := handlers.NewProducts(l)
 
 	smux := http.NewServeMux()
 	smux.Handle("/", h)
 	smux.Handle("/beep", b)
+	smux.Handle("/products", p)
 
 	s := &http.Server{
-		Addr:         ":5678",
-		Handler:      smux,
+		Addr:         ":" + Port, // set TCP address to listen on
+		Handler:      smux,       // handler to invoke
+		ErrorLog:     l,          // logger for errors while accepting connections
 		IdleTimeout:  120 * time.Second,
 		ReadTimeout:  1 * time.Second,
 		WriteTimeout: 1 * time.Second,
 	}
 
 	go func() {
+		l.Println("Server started on port: 5678")
 		err := s.ListenAndServe()
 		if err != nil {
 			l.Fatal(err)
